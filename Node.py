@@ -13,9 +13,9 @@ class Node():
         return f'Node: {self.id}\n\tBattery: {self.battery}\n\tActive Connections: {len(self.connectedNodes)}'
 
 class NodeController():
-    def __init__(self):
-        self.numNodes = 10
-        self.maxConnections = 3
+    def __init__(self, numNodes, maxConnections):
+        self.numNodes = numNodes
+        self.maxConnections = maxConnections
         self.nodes = []
         self.resetNetwork()
 

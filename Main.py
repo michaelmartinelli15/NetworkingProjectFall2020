@@ -16,9 +16,9 @@ for l in allLayers:
     print("\t" + "Upper Layer: " + l.upperLayer)
     print("\t" + "Lower Layer: " + l.lowerLayer)
 
-controller = NodeController()
+# takes numNodes, maxConnections
+controller = NodeController(10, 3)
 controller.visualize()
 controller.createNetwork()
 controller.visualize()
 controller.visualizeAsGraph()
-#controller.test()
