@@ -20,16 +20,17 @@ class NetworkLayer(Layer):
         self.upperLayer = "Transport"
         self.lowerLayer = "Link"
 
-    def sendProcess(self, message):
-        if self.lowerLayer is not None:
-            print(message + " ")
-            print("NL Message sent")
-            self.lower.receiveProcess(message)
-        else:
-            pass
+    def send(self, packet, nextNode):
+      packet.payload = packet.header + ": " + packet.payload
+      packet.header = "N"
+      self.lower.send(packet, nextNode)
 
-    def receiveProcess(self, message):
-        print(message + " ")
-        print("NL process received")
-        self.sendBuffer.put(message)
-        self.sendProcess(message)
+    def receive(self, packet):
+      print("Network Layer Header: ", packet.header)
+
+      index = packet.payload.find(" ")
+
+      packet.header = packet.payload[0]
+      packet.payload = packet.payload[index+1:]
+
+      self.upper.receive(packet)

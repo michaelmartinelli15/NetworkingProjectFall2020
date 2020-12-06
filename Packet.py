@@ -2,15 +2,15 @@ from random import randint
 
 
 class Packet():
-    def __init__(self):
-        self.source = randint(0,10)
-        self.destination = randint(0,10)
-        self.path = []
-        self.information = self.randomDigits(10)
+    def __init__(self, source, destination):
+        self.source = source
+        self.destination = destination
+        self.payload = "Message"
+        self.header = ""
 
     def __str__(self):
         return 'Source: ' + str(self.source) + ", " +'Destination: ' + str(self.destination) \
-                + '\n' + "Information: " + str(self.information)
+                + '\n'
 
     def randomDigits(self, n):
         range_start = 10**(n-1)

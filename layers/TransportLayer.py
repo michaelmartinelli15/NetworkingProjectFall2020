@@ -20,26 +20,17 @@ class TransportLayer(Layer):
         self.upperLayer = "Application"
         self.lowerLayer = "Network"
 
-    def send(self):
-        if not self.sendBuffer.empty():
-            message = self.sendBuffer.get()
-            self.sendProcess()
+    def send(self, packet, nextNode):
+        packet.payload = packet.header + ": " + packet.payload
+        packet.header = "T"
+        self.lower.send(packet, nextNode)
 
-    def receive(self):
-        if not self.receiveBuffer.empty():
-            message = self.receiveBuffer.get()
-            self.receiveProcess()
+    def receive(self, packet):
+        print("Transport Layer Header: ", packet.header)
 
-    def sendProcess(self, message):
-        if self.lowerLayer is not None:
-            print(message + " ")
-            print("TL Message sent")
-            self.lower.receiveProcess(message)
-        else:
-            pass
+        index = packet.payload.find(" ")
 
-    def receiveProcess(self, message):
-        print(message + " ")
-        print("TL process received")
-        self.sendBuffer.put(message)
-        self.sendProcess(message)
+        packet.header = packet.payload[0]
+        packet.payload = packet.payload[index+1:]
+
+        self.upper.receive(packet)

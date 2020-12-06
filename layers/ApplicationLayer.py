@@ -14,28 +14,13 @@ class ApplicationLayer(Layer):
         self.sendBuffer = Queue()
         self.receiveBuffer = Queue()
 
-        self.sendBuffer.put("BS")
-
         self.lowerLayer = "Transport"
-        self.lower = TransportLayer(None)
 
-    def send(self, sendNode, receiveNode):
-        if not self.sendBuffer.empty():
-            message = self.sendBuffer.get()
-            self.sendProcess(message)
+    def send(self, packet, nextNode):
+        packet.header = "A"
+        self.lower.send(packet, nextNode)
 
-    def receive(self):
-        if not self.receiveBuffer.empty():
-            message = self.receiveBuffer.get()
-            self.receiveProcess()
+    def receive(self, packet):
+        print("Application Layer Header: ", packet.header)
 
-    def sendProcess(self, message):
-        if self.lowerLayer is not None:
-            print(message + " ")
-            #print("AL Message sent")
-            self.lower.receiveProcess(message)
-        else:
-            pass
-
-    def receiveProcess(self):
-        print("AL process received")
+        print("Packet received with payload: ", packet.payload)

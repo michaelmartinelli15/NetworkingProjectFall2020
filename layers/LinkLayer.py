@@ -15,18 +15,20 @@ class LinkLayer(Layer):
         self.upperLayer = "Network"
         self.lowerLayer = None
 
-    def sendProcess(self, message):
-        if self.lowerLayer is not None:
-            print(message + " ")
-            print("LL Message sent")
-            #self.lower.receiveProcess(message)
-        else:
-            print(message + " ")
-            print("No Lower Layer, Message Done")
-            pass
+    def send(self, packet, nextNode):
+      packet.payload = packet.header + ": " + packet.payload
+      packet.header = "L"
 
-    def receiveProcess(self, message):
-        print(message + " ")
-        print("LL process received")
-        self.sendBuffer.put(message)
-        self.sendProcess(message)
+      nextNode.receive(packet)
+
+    def receive(self, packet):
+      print("Link Layer Header: ", packet.header)
+
+      index = packet.payload.find(" ")
+
+      packet.header = packet.payload[0]
+      packet.payload = packet.payload[index+1:]
+
+      self.upper.receive(packet)
+
+    
