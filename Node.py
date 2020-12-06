@@ -2,6 +2,8 @@ import numpy as np
 from random import choice
 import networkx as nx
 import matplotlib.pyplot as plt
+import layers
+from layers.Layer import Layer
 
 class Node():
     def __init__(self, id):

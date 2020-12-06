@@ -1,15 +1,8 @@
-from layers.ApplicationLayer import ApplicationLayer
-from layers.TransportLayer import TransportLayer
-from layers.NetworkLayer import NetworkLayer
-from layers.LinkLayer import LinkLayer
+from layers.LayerManager import LayerManager
 from Node import NodeController, Node
+from Packet import Packet
 
 allLayers = []
-
-allLayers.append(ApplicationLayer(None))
-allLayers.append(TransportLayer(None))
-allLayers.append(NetworkLayer(None))
-allLayers.append(LinkLayer(None))
 
 for l in allLayers:
     print(l.name)
@@ -18,7 +11,14 @@ for l in allLayers:
 
 # takes numNodes, maxConnections
 controller = NodeController(10, 3)
+layerManager = LayerManager(controller)
 controller.visualize()
 controller.createNetwork()
 controller.visualize()
 controller.visualizeAsGraph()
+
+randPacket = Packet()
+layerManager.sendPacket(randPacket)
+
+
+#print(layerManager.application.name)
