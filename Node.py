@@ -20,32 +20,43 @@ class Node():
         return f'Node: {self.id}\n\tBattery: {self.battery}\n\tActive Connections: {len(self.connectedNodes)}'
 
     def getNextNode(self, parents, j):
-      nextIndex = parents[j]
-      if parents[nextIndex] == -1:
-        for node in self.connectedNodes:
-          if node.id == j:
-            return node
+        nextIndex = parents[j]
+        if parents[nextIndex] == -1:
+            for node in self.connectedNodes:
+                if node.id == j:
+                    return node
 
-      return self.getNextNode(parents, nextIndex)
-      
+        return self.getNextNode(parents, nextIndex)
+
     def send(self, packet):
-      nextNode = self.getNextNode(self.layerManager.routes, packet.destination)
+        nextNode = self.getNextNode(self.layerManager.routes, packet.destination)
 
-      self.battery -= 1
-      self.energySpent += 1
+        self.battery -= 1
+        self.energySpent += 1
 
-      print("Sending Packet")
-      print(self)
+        print("Node ", self.id, ": Sending Packet")
+        #print(self)
 
-      self.layerManager.sendPacket(packet, nextNode)
+        self.layerManager.sendPacket(packet, nextNode)
+
+    def forward(self, packet):
+        nextNode = self.getNextNode(self.layerManager.routes, packet.destination)
+
+        self.battery -= 1
+        self.energySpent += 1
+
+        print("Node ", self.id, ": Forwarding Packet")
+
+        self.layerManager.forwardPacket(packet, nextNode)
 
     def receive(self, packet):
-      print("Receiving Packet")
-      print(self)
-      if packet.destination == self.id:
-        self.layerManager.receivePacket(packet)
-      else:
-        self.send(packet)
+        print("Node ", self.id, ": Receiving Packet")
+        #print(self)
+        if packet.destination == self.id:
+            print("Node ", self.id, ": Unpacking...")
+            self.layerManager.receivePacket(packet)
+        else:
+            self.forward(packet)
 
 class NodeController():
     def __init__(self, numNodes, maxConnections):
@@ -104,149 +115,147 @@ class NodeController():
             row = []
 
     def resetBattery(self):
-      for node in self.nodes:
-        node.battery = 100
-        node.energySpent = 0
+        for node in self.nodes:
+            node.battery = 100
+            node.energySpent = 0
 
     def findMaxRemainingBattery(self, batteryMatrix, currentPath):
-      minCost = 100000000
+        minCost = 100000000
 
-      for nodeIndex in range(self.numNodes):
-        if batteryMatrix[nodeIndex] < minCost and currentPath[nodeIndex] == False:
-          minCost = batteryMatrix[nodeIndex]
-          minIndex = nodeIndex
+        for nodeIndex in range(self.numNodes):
+            if batteryMatrix[nodeIndex] < minCost and currentPath[nodeIndex] == False:
+                minCost = batteryMatrix[nodeIndex]
+                minIndex = nodeIndex
 
-      return minIndex
+        return minIndex
 
     def findShortestDistance(self, distanceMatrix, currentPath):
-      minCost = 10000000
+        minCost = 10000000
 
-      for nodeIndex in range(self.numNodes):
-        if distanceMatrix[nodeIndex] < minCost and currentPath[nodeIndex] == False:
-          minCost = distanceMatrix[nodeIndex]
-          minIndex = nodeIndex
+        for nodeIndex in range(self.numNodes):
+            if distanceMatrix[nodeIndex] < minCost and currentPath[nodeIndex] == False:
+                minCost = distanceMatrix[nodeIndex]
+                minIndex = nodeIndex
 
-      return minIndex
+        return minIndex
 
     def printPath(self, parents, j):
-      if parents[j] == -1 :  
-        print(j)
-        return
-      self.printPath(parents , parents[j]) 
-      print(j)
+        if parents[j] == -1 :
+            print(j)
+            return
+            self.printPath(parents , parents[j])
+            print(j)
 
-    def printSolution(self, dist, parents): 
+    def printSolution(self, dist, parents):
         src = 6
-        print("Vertex \t\tDistance from Source\tPath") 
-        for i in range(1, len(dist)): 
-            print("\n%d --> %d \t\t%d \t\t\t\t\t" % (src, i, dist[i])), 
+        print("Vertex \t\tDistance from Source\tPath")
+        for i in range(1, len(dist)):
+            print("\n%d --> %d \t\t%d \t\t\t\t\t" % (src, i, dist[i])),
             self.printPath(parents,i)
 
     def dijsktra(self, node):
-      costs = [1000000] * self.numNodes
-      costs[node.id] = 0
+        costs = [1000000] * self.numNodes
+        costs[node.id] = 0
 
-      shortestPath = [False] * self.numNodes
+        shortestPath = [False] * self.numNodes
 
-      parents = [-1] * self.numNodes
+        parents = [-1] * self.numNodes
 
-      for iter in range(0, self.numNodes):
-        nodeIndex = self.findShortestDistance(costs, shortestPath)
+        for iter in range(0, self.numNodes):
+            nodeIndex = self.findShortestDistance(costs, shortestPath)
 
-        shortestPath[nodeIndex] = True
+            shortestPath[nodeIndex] = True
 
-        for neighbor in self.nodes[nodeIndex].connectedNodes:
-          if shortestPath[neighbor.id] == False and costs[neighbor.id] > costs[nodeIndex] + 1:
-            # cost to the current node + 1 for the cost to the next node (all nodes are 1 away) + the amount of energySpent to avoid nodes with low battery
-            costs[neighbor.id] = costs[nodeIndex] + 1
-            parents[neighbor.id] = nodeIndex
-      
-      #self.printSolution(costs, parents)
-      node.layerManager.routes = parents
+            for neighbor in self.nodes[nodeIndex].connectedNodes:
+                if shortestPath[neighbor.id] == False and costs[neighbor.id] > costs[nodeIndex] + 1:
+                    # cost to the current node + 1 for the cost to the next node (all nodes are 1 away) + the amount of energySpent to avoid nodes with low battery
+                    costs[neighbor.id] = costs[nodeIndex] + 1
+                    parents[neighbor.id] = nodeIndex
+
+        node.layerManager.routes = parents
 
     def dijsktraWithEnergySpent(self, node):
-      costs = [1000000] * self.numNodes
-      costs[node.id] = 0
+        costs = [1000000] * self.numNodes
+        costs[node.id] = 0
 
-      shortestPath = [False] * self.numNodes
+        shortestPath = [False] * self.numNodes
 
-      parents = [-1] * self.numNodes
+        parents = [-1] * self.numNodes
 
-      for iter in range(0, self.numNodes):
-        nodeIndex = self.findMaxRemainingBattery(costs, shortestPath)
+        for iter in range(0, self.numNodes):
+            nodeIndex = self.findMaxRemainingBattery(costs, shortestPath)
 
-        shortestPath[nodeIndex] = True
+            shortestPath[nodeIndex] = True
 
-        for neighbor in self.nodes[nodeIndex].connectedNodes:
-          if shortestPath[neighbor.id] == False and costs[neighbor.id] > costs[nodeIndex] + 1 + neighbor.energySpent:
-            # cost to the current node + 1 for the cost to the next node (all nodes are 1 away) + the amount of energySpent to avoid nodes with low battery
-            costs[neighbor.id] = costs[nodeIndex] + 1 + neighbor.energySpent
-            parents[neighbor.id] = nodeIndex
-      
-      #self.printSolution(costs, parents)
-      node.layerManager.routes = parents
+            for neighbor in self.nodes[nodeIndex].connectedNodes:
+                if shortestPath[neighbor.id] == False and costs[neighbor.id] > costs[nodeIndex] + 1 + neighbor.energySpent:
+                    # cost to the current node + 1 for the cost to the next node (all nodes are 1 away) + the amount of energySpent to avoid nodes with low battery
+                    costs[neighbor.id] = costs[nodeIndex] + 1 + neighbor.energySpent
+                    parents[neighbor.id] = nodeIndex
+
+        #self.printSolution(costs, parents)
+        node.layerManager.routes = parents
 
     def updateLayerManagers(self):
-      for node in self.nodes:
-        self.dijsktra(node)
+        for node in self.nodes:
+            self.dijsktra(node)
 
     def updateLayerManagersWithEnergySpent(self):
-      for node in self.nodes:
-        self.dijsktraWithEnergySpent(node)
+        for node in self.nodes:
+            self.dijsktraWithEnergySpent(node)
 
     def printPaths(self):
-      for node in self.nodes:
-        node.layerManager.printSolution()
+        for node in self.nodes:
+            node.layerManager.printSolution()
 
     def allNodesStillActive(self):
-      for node in self.nodes:
-        if node.battery == 0:
-          return False
-      
-      return True
+        for node in self.nodes:
+            if node.battery == 0:
+                return False
+
+        return True
 
     def generateSourceAndDestination(self):
-      source = randint(0,9)
-      destination = randint(0,9)
+        source = randint(0,9)
+        destination = randint(0,9)
 
-      if source == destination:
-        return self.generateSourceAndDestination()
-      
-      return source, destination
+        if source == destination:
+            return self.generateSourceAndDestination()
+
+        return source, destination
 
     def simulate(self):
-      virginCount = 0
-      chadCount = 0
+        baselineCount = 0
+        augmentedCount = 0
 
-      while self.allNodesStillActive():
-        source, destination = self.generateSourceAndDestination()
+        while self.allNodesStillActive():
+            source, destination = self.generateSourceAndDestination()
 
-        self.updateLayerManagers()
+            self.updateLayerManagers()
 
-        packet = Packet(source, destination)
+            packet = Packet(source, destination)
 
-        print("Preparing to sim with packet")
-        print(packet)
+            print("Preparing to sim with packet")
+            print(packet)
 
-        self.nodes[source].send(packet)
-        virginCount += 1
+            self.nodes[source].send(packet)
+            baselineCount += 1
 
-      self.resetBattery()
+        self.resetBattery()
 
-      while self.allNodesStillActive():
-        source, destination = self.generateSourceAndDestination()
+        while self.allNodesStillActive():
+            source, destination = self.generateSourceAndDestination()
 
-        self.updateLayerManagersWithEnergySpent()
+            self.updateLayerManagersWithEnergySpent()
 
-        packet = Packet(source, destination)
+            packet = Packet(source, destination)
 
-        print("Preparing to sim with packet")
-        print(packet)
+            print("Preparing to sim with packet")
+            print(packet)
 
-        self.nodes[source].send(packet)
-        chadCount += 1
+            self.nodes[source].send(packet)
+            augmentedCount += 1
 
-      print("Simulation Complete")
-      print("Virgin Packets Sent: ", virginCount)
-      print("Chad Packets Sent: ", chadCount)
-
+        print("Simulation Complete")
+        print("Packets sent using default Dijsktra: ", baselineCount)
+        print("Packets sent using augmented Dijsktra focusing on energy conservation: ", augmentedCount)

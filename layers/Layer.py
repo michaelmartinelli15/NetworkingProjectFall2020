@@ -10,11 +10,6 @@ class Layer():
 
         self.name = None
 
-        self.sendBuffer = Queue()
-        self.receiveBuffer = Queue()
-
-        self.sendBuffer.put("message")
-
         self.upperLayer = "None"
         self.lowerLayer = "None"
 
@@ -27,10 +22,9 @@ class Layer():
         if not self.receiveBuffer.empty():
             message = self.receiveBuffer.get()
             self.receiveProcess()
-        
+
     def sendProcess(self):
         print("process sent")
 
     def receiveProcess(self):
         print("process received")
-

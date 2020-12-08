@@ -12,11 +12,6 @@ class TransportLayer(Layer):
 
         self.name = "Transport Layer"
 
-        self.lower = NetworkLayer(None)
-
-        self.sendBuffer = Queue()
-        self.receiveBuffer = Queue()
-
         self.upperLayer = "Application"
         self.lowerLayer = "Network"
 
@@ -31,6 +26,7 @@ class TransportLayer(Layer):
         index = packet.payload.find(" ")
 
         packet.header = packet.payload[0]
-        packet.payload = packet.payload[index+1:]
+        #packet.payload = packet.payload[index+1:]
+        packet.payload = packet.payload[3:]
 
         self.upper.receive(packet)

@@ -12,25 +12,21 @@ class NetworkLayer(Layer):
 
         self.name = "Network Layer"
 
-        self.lower = LinkLayer(None)
-
-        self.sendBuffer = Queue()
-        self.receiveBuffer = Queue()
-
         self.upperLayer = "Transport"
         self.lowerLayer = "Link"
 
     def send(self, packet, nextNode):
-      packet.payload = packet.header + ": " + packet.payload
-      packet.header = "N"
-      self.lower.send(packet, nextNode)
+        packet.payload = packet.header + ": " + packet.payload
+        packet.header = "N"
+        self.lower.send(packet, nextNode)
 
     def receive(self, packet):
-      print("Network Layer Header: ", packet.header)
+        print("Network Layer Header: ", packet.header)
 
-      index = packet.payload.find(" ")
+        index = packet.payload.find(" ")
 
-      packet.header = packet.payload[0]
-      packet.payload = packet.payload[index+1:]
+        packet.header = packet.payload[0]
+        #packet.payload = packet.payload[index+1:]
+        packet.payload = packet.payload[3:]
 
-      self.upper.receive(packet)
+        self.upper.receive(packet)
